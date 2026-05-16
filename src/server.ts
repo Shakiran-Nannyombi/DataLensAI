@@ -14,10 +14,21 @@ const angularApp = new AngularNodeAppEngine();
 
 import { GoogleGenAI, Type } from '@google/genai';
 import multer from 'multer';
-import * as pdfParseModule from 'pdf-parse';
 
-// Handle both ESM and CJS imports for pdf-parse
-const pdfParse = (pdfParseModule as any).default || pdfParseModule;
+// Mock DOMMatrix to prevent pdf.js startup crash
+if (typeof (globalThis as any).DOMMatrix === 'undefined') {
+  (globalThis as any).DOMMatrix = class DOMMatrix {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    is2D = true;
+    constructor() {}
+  };
+}
+if (typeof (globalThis as any).Path2D === 'undefined') {
+  (globalThis as any).Path2D = class Path2D {};
+}
+if (typeof (globalThis as any).ImageData === 'undefined') {
+  (globalThis as any).ImageData = class ImageData {};
+}
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -48,11 +59,23 @@ app.post('/api/analyze', upload.single('data_file'), async (req, res) => {
     }
 
     let fileContent = '';
-    const fileType = file.mimetype || file.originalname.split('.').pop() || '';
+    const originalName = file.originalname || '';
+    const fileExt = originalName.split('.').pop()?.toLowerCase() || '';
+    const mimetype = file.mimetype || '';
 
-    if (fileType.includes('pdf')) {
-      const pdfData = await pdfParse(file.buffer);
+    if (mimetype.includes('pdf') || fileExt === 'pdf') {
+      const pdfParseModule = await import('pdf-parse');
+      const PDFParse = pdfParseModule.PDFParse;
+      const parser = new PDFParse({ data: file.buffer });
+      const pdfData = await parser.getText();
       fileContent = pdfData.text;
+    } else if (fileExt === 'xlsx' || fileExt === 'xls' || mimetype.includes('excel') || mimetype.includes('spreadsheet')) {
+      const xlsx = await import('xlsx');
+      const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+      workbook.SheetNames.forEach(sheetName => {
+        fileContent += `\n--- Sheet: ${sheetName} ---\n`;
+        fileContent += xlsx.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+      });
     } else {
       fileContent = file.buffer.toString('utf-8');
     }
