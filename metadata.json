@@ -1,0 +1,6 @@
+{
+  "name": "DataLens AI",
+  "description": "An AI-powered data visualization dashboard that processes user-uploaded data to generate executive summaries, key findings, and interactive visual charts tailored to specific target goals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
