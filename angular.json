@@ -19,6 +19,13 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "externalDependencies": [
+              "@google/genai",
+              "pdf-parse",
+              "xlsx",
+              "node-domexception",
+              "fetch-blob"
+            ],
             "define": {
               "GEMINI_API_KEY": "'YOUR_GEMINI_API_KEY'"
             },
@@ -56,7 +63,6 @@
               "outputHashing": "all"
             },
             "development": {
-              "externalDependencies": ["@google/genai"],
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true

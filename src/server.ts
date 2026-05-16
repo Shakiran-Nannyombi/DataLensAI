@@ -95,7 +95,7 @@ ${fileContent}
 Analyze the data and return a JSON object exactly matching this schema. Do not include markdown formatting or extra text outside the JSON. All JSON fields must be present.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
